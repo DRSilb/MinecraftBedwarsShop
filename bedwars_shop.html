@@ -1,0 +1,1752 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bedwars Shop Manager</title>
+<style>
+:root {
+    --iron-color: #a0a0a0;
+    --gold-color: #ffd700;
+    --diamond-color: #1ccad8;
+    --emerald-color: #50c878;
+    --dark: #1a1a1a;
+    --light-dark: #252525;
+    --lighter: #333333;
+    --light: #f5f5f5;
+    --accent: #ff5555;
+    --accent-hover: #ff3333;
+    --minecraft-font: 'Minecraft', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background-color: var(--dark);
+    color: var(--light);
+    line-height: 1.6;
+    padding: 20px;
+    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAYAAAAeP4ixAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAZdEVYdFNvZnR3YXJlAHBhaW50Lm5ldCA0LjAuMjHxIGmVAAAAVklEQVRoQ+3SwQkAIAwEwXTpv2cFHzYQYgbmtQ0AAPB3R3d0d3dV9V636u7ozr/23etW3R3d+deWttZa21prrbVHa6211lprrbXWWmuttdZaAwCAQZIDgF0e5eruVq8AAAAASUVORK5CYII=');
+    background-blend-mode: overlay;
+    background-attachment: fixed;
+}
+
+h1, h2, h3 {
+    color: white;
+    margin-bottom: 15px;
+    font-family: var(--minecraft-font);
+    text-shadow: 2px 2px 0 rgba(0,0,0,0.5);
+}
+
+h1 {
+    text-align: center;
+    letter-spacing: 1px;
+    font-size: 2.2em;
+    margin-bottom: 30px;
+    color: #ff7e5f;
+    background-image: linear-gradient(to right, #ff7e5f, #feb47b);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.5));
+}
+
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.data-controls {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.data-controls button {
+    padding: 10px 15px;
+    font-size: 1em;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background-color: var(--accent);
+    color: white;
+    padding: 15px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+    transform: translateY(-100px);
+    opacity: 0;
+    transition: transform 0.3s, opacity 0.3s;
+}
+
+.notification.show {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 30px;
+}
+
+.card {
+    background-color: var(--light-dark);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(5px);
+    position: relative;
+    overflow: hidden;
+}
+
+.card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 5px;
+    background: linear-gradient(90deg, var(--iron-color), var(--gold-color), var(--diamond-color), var(--emerald-color));
+}
+
+.players-section, .shop-section {
+    display: flex;
+    flex-direction: column;
+}
+
+.players-container {
+    max-height: 70vh;
+    overflow-y: auto;
+    padding-right: 10px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--accent) var(--lighter);
+}
+
+.players-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+.players-container::-webkit-scrollbar-thumb {
+    background-color: var(--accent);
+    border-radius: 4px;
+}
+
+.players-container::-webkit-scrollbar-track {
+    background-color: var(--lighter);
+    border-radius: 4px;
+}
+
+.player-card {
+    background-color: var(--lighter);
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
+    transition: transform 0.2s, box-shadow 0.2s;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    position: relative;
+}
+
+.player-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+}
+
+.player-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 10px;
+}
+
+.player-name {
+    font-weight: bold;
+    font-size: 1.2em;
+    font-family: var(--minecraft-font);
+}
+
+.recent-purchases {
+    margin-bottom: 15px;
+    padding: 8px;
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 6px;
+    font-size: 0.9em;
+}
+
+.recent-purchases-title {
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #ddd;
+}
+
+.recent-purchases-items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.recent-purchase-item {
+    background-color: rgba(255, 255, 255, 0.1);
+    padding: 3px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    max-width: 100px;
+}
+
+.recent-purchase-more {
+    color: #aaa;
+    font-style: italic;
+}
+
+.recent-purchases-empty {
+    color: #888;
+    font-style: italic;
+}
+
+.resources {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.resource {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    background-color: rgba(0, 0, 0, 0.2);
+    padding: 8px;
+    border-radius: 6px;
+    transition: background-color 0.2s;
+}
+
+.resource:hover {
+    background-color: rgba(0, 0, 0, 0.3);
+}
+
+.resource-header {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-bottom: 5px;
+}
+
+.resource-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    font-size: 14px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.iron { background-color: var(--iron-color); color: black; }
+.gold { background-color: var(--gold-color); color: black; }
+.diamond { background-color: var(--diamond-color); color: black; }
+.emerald { background-color: var(--emerald-color); color: black; }
+
+.resource-value {
+    font-weight: bold;
+    font-size: 1.1em;
+}
+
+.resource-controls {
+    display: flex;
+    gap: 5px;
+    width: 100%;
+}
+
+.resource-input {
+    width: 100%;
+    text-align: center;
+    padding: 4px;
+    border-radius: 4px;
+    border: 1px solid #555;
+    background-color: var(--dark);
+    color: white;
+}
+
+.resource-buttons {
+    display: flex;
+    gap: 5px;
+    margin-top: 5px;
+    width: 100%;
+}
+
+button {
+    background-color: var(--accent);
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    font-weight: bold;
+}
+
+button:hover {
+    background-color: var(--accent-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+button:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+button:disabled {
+    background-color: #555;
+    cursor: not-allowed;
+    opacity: 0.7;
+    transform: none;
+    box-shadow: none;
+}
+
+button.secondary {
+    background-color: #555;
+}
+
+button.secondary:hover {
+    background-color: #777;
+}
+
+button.small {
+    padding: 4px 8px;
+    font-size: 0.9em;
+    flex: 1;
+}
+
+button.icon {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 4px;
+    width: 28px;
+    height: 28px;
+}
+
+input, select {
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: 1px solid #555;
+    background-color: var(--dark);
+    color: white;
+    transition: border 0.2s, box-shadow 0.2s;
+}
+
+input:focus, select:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(255, 85, 85, 0.25);
+}
+
+.add-player {
+    display: flex;
+    margin-bottom: 20px;
+    gap: 10px;
+}
+
+.add-player input {
+    flex: 1;
+}
+
+.shop-items {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 15px;
+}
+
+.shop-item {
+    background-color: var(--lighter);
+    border-radius: 8px;
+    padding: 15px;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.shop-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+}
+
+.shop-item.affordable {
+    border: 2px solid var(--emerald-color);
+    box-shadow: 0 0 10px rgba(80, 200, 120, 0.3);
+}
+
+.category-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 15px;
+}
+
+.category-button {
+    background-color: var(--lighter);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.9em;
+}
+
+.category-button:hover {
+    background-color: #444;
+    transform: translateY(-2px);
+}
+
+.category-button.active {
+    background-color: var(--accent);
+    border-color: var(--accent);
+}
+
+.shop-item-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.shop-item-name {
+    font-weight: bold;
+    font-size: 1.1em;
+    font-family: var(--minecraft-font);
+}
+
+.shop-item-category {
+    padding: 2px 6px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    font-size: 0.8em;
+}
+
+.item-price {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    font-weight: bold;
+    gap: 5px;
+    color: #ddd;
+}
+
+.costs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.cost {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background-color: rgba(0, 0, 0, 0.2);
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.9em;
+}
+
+.selected-player {
+    margin-bottom: 20px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    padding: 10px;
+    background-color: var(--lighter);
+    border-radius: 8px;
+}
+
+.player-stats {
+    display: flex;
+    gap: 15px;
+    margin-left: 15px;
+}
+
+.player-stat {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.9em;
+    background-color: rgba(0, 0, 0, 0.2);
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+.search-filter {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.search-filter > * {
+    flex: 1;
+    min-width: 150px;
+}
+
+.tabs {
+    display: flex;
+    margin-bottom: 15px;
+    border-bottom: 1px solid var(--lighter);
+}
+
+.tab {
+    padding: 10px 15px;
+    background-color: var(--lighter);
+    border-radius: 8px 8px 0 0;
+    cursor: pointer;
+    margin-right: 5px;
+    transition: all 0.2s;
+    font-weight: bold;
+}
+
+.tab:hover {
+    background-color: #444;
+}
+
+.tab.active {
+    background-color: var(--accent);
+}
+
+.purchase-history {
+    margin-top: 15px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding-top: 10px;
+}
+
+.history-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    cursor: pointer;
+}
+
+.history-items {
+    max-height: 150px;
+    overflow-y: auto;
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 6px;
+    padding: 8px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--accent) var(--lighter);
+}
+
+.history-items::-webkit-scrollbar {
+    width: 6px;
+}
+
+.history-items::-webkit-scrollbar-thumb {
+    background-color: var(--accent);
+    border-radius: 3px;
+}
+
+.history-items::-webkit-scrollbar-track {
+    background-color: transparent;
+}
+
+.history-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.history-item:last-child {
+    border-bottom: none;
+}
+
+.history-item-name {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex: 1;
+}
+
+.history-item-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.history-item-cost {
+    display: flex;
+    gap: 8px;
+}
+
+.undo-btn {
+    font-size: 16px;
+    padding: 3px 6px;
+    min-width: 30px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #555;
+    border-radius: 4px;
+}
+
+.undo-btn:hover {
+    background-color: #777;
+}
+
+.resource-type-selector {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.resource-type-selector select {
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+.resource-tracking {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.spending-summary {
+    background-color: rgba(0, 0, 0, 0.2);
+    padding: 12px;
+    border-radius: 6px;
+    margin-top: 10px;
+}
+
+.spending-bar {
+    height: 10px;
+    background-color: var(--dark);
+    border-radius: 5px;
+    margin-top: 5px;
+    overflow: hidden;
+}
+
+.spending-progress {
+    height: 100%;
+    background: linear-gradient(90deg, var(--emerald-color), var(--accent));
+    border-radius: 5px;
+    transition: width 0.3s;
+}
+
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(255, 85, 85, 0.4); }
+    70% { box-shadow: 0 0 0 10px rgba(255, 85, 85, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(255, 85, 85, 0); }
+}
+
+.pulse {
+    animation: pulse 1.5s infinite;
+}
+
+/* Responsive styles */
+@media (max-width: 1200px) {
+    .grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .resources {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 600px) {
+    .resources {
+        grid-template-columns: 1fr;
+    }
+    
+    .resource-controls {
+        flex-direction: column;
+    }
+}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>⚔️ Bedwars Shop Manager ⚔️</h1>
+
+<div class="data-controls">
+    <button id="export-btn" title="Export data to JSON file">
+        ⬇️ Export Data
+    </button>
+    <button id="import-btn" title="Import data from JSON file">
+        ⬆️ Import Data
+    </button>
+    <input type="file" id="import-file" accept=".json" style="display: none;">
+</div>
+
+<div class="grid">
+    <div class="players-section">
+        <div class="card">
+            <h2>🧑‍🤝‍🧑 Players</h2>
+            <div class="add-player">
+                <input type="text" id="player-name" placeholder="Enter player name...">
+                <button id="add-player-btn">Add Player</button>
+            </div>
+            <div class="players-container" id="players-list">
+                <!-- Players will be added here dynamically -->
+            </div>
+        </div>
+    </div>
+    
+    <div class="shop-section">
+        <div class="card">
+            <h2>🛒 Shop Items</h2>
+            <div class="selected-player">
+                <span>Shopping for:</span>
+                <select id="player-select">
+                    <option value="">Select a player</option>
+                </select>
+                <div class="player-stats" id="player-stats">
+                    <!-- Player stats will be added here dynamically -->
+                </div>
+            </div>
+            
+            <div class="search-filter">
+                <input type="text" id="shop-search" placeholder="Search items...">
+                <select id="category-select">
+                    <option value="">All Categories</option>
+                </select>
+            </div>
+            
+            <div class="category-buttons" id="category-buttons">
+                <!-- Category buttons will be added here -->
+            </div>
+            
+            <div class="tabs">
+                <div class="tab active" data-tab="all">All Items</div>
+                <div class="tab" data-tab="affordable">Affordable</div>
+            </div>
+            
+            <div id="shop-items" class="shop-items">
+                <!-- Shop items will be added here dynamically -->
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+
+<!-- Notification element -->
+<div id="notification" class="notification"></div>
+
+<script>
+// Initialize data
+let players = [];
+let shopItems = [];
+let activePlayer = null;
+let activeTab = 'all';
+let searchQuery = '';
+let categoryFilter = '';
+
+// DOM elements
+const playerNameInput = document.getElementById('player-name');
+const addPlayerBtn = document.getElementById('add-player-btn');
+const playersList = document.getElementById('players-list');
+const playerSelect = document.getElementById('player-select');
+const playerStats = document.getElementById('player-stats');
+const shopItemsContainer = document.getElementById('shop-items');
+const shopSearch = document.getElementById('shop-search');
+const categorySelect = document.getElementById('category-select');
+const categoryButtons = document.getElementById('category-buttons');
+const tabs = document.querySelectorAll('.tab');
+const exportBtn = document.getElementById('export-btn');
+const importBtn = document.getElementById('import-btn');
+const importFile = document.getElementById('import-file');
+const notification = document.getElementById('notification');
+
+// Define resource types
+const resources = [
+    { id: 'iron', name: 'Iron', icon: 'I', color: 'var(--iron-color)' },
+    { id: 'gold', name: 'Gold', icon: 'G', color: 'var(--gold-color)' },
+    { id: 'diamond', name: 'Diamond', icon: 'D', color: 'var(--diamond-color)' },
+    { id: 'emerald', name: 'Emerald', icon: 'E', color: 'var(--emerald-color)' }
+];
+
+// Resource values (for calculating total worth)
+const resourceValues = {
+    iron: 1,
+    gold: 8,
+    diamond: 64,
+    emerald: 256
+};
+
+// Function to show notification
+function showNotification(message, duration = 3000) {
+    notification.textContent = message;
+    notification.classList.add('show');
+    setTimeout(() => {
+        notification.classList.remove('show');
+    }, duration);
+}
+
+// Function to add a new player
+function addPlayer(name) {
+    if (!name) return;
+    
+    const playerId = 'player-' + Date.now();
+    const newPlayer = {
+        id: playerId,
+        name: name,
+        resources: {
+            iron: 0,
+            gold: 0,
+            diamond: 0,
+            emerald: 0
+        },
+        purchaseHistory: [],
+        totalSpent: {
+            iron: 0,
+            gold: 0,
+            diamond: 0,
+            emerald: 0
+        },
+        trackedResource: 'iron' // Default to tracking iron
+    };
+    
+    players.push(newPlayer);
+    renderPlayers();
+    updatePlayerSelect();
+    showNotification(`Player "${name}" added!`);
+}
+
+// Function to remove a player
+function removePlayer(playerId) {
+    const playerName = players.find(p => p.id === playerId)?.name;
+    players = players.filter(player => player.id !== playerId);
+    if (activePlayer === playerId) {
+        activePlayer = players.length > 0 ? players[0].id : null;
+        playerSelect.value = activePlayer || '';
+        updatePlayerStats();
+    }
+    renderPlayers();
+    updatePlayerSelect();
+    renderShopItems();
+    showNotification(`Player "${playerName}" removed.`);
+}
+
+// Function to update a player's resources
+function updateResource(playerId, resourceType, amount) {
+    const player = players.find(p => p.id === playerId);
+    if (!player) return;
+    
+    player.resources[resourceType] += amount;
+    if (player.resources[resourceType] < 0) {
+        player.resources[resourceType] = 0;
+    }
+    
+    renderPlayers();
+    if (activePlayer === playerId) {
+        updatePlayerStats();
+        renderShopItems();
+    }
+}
+
+// Function to set a specific resource amount
+function setResourceAmount(playerId, resourceType, amount) {
+    const player = players.find(p => p.id === playerId);
+    if (!player) return;
+    
+    const newAmount = parseInt(amount);
+    if (isNaN(newAmount) || newAmount < 0) return;
+    
+    player.resources[resourceType] = newAmount;
+    
+    renderPlayers();
+    if (activePlayer === playerId) {
+        updatePlayerStats();
+        renderShopItems();
+    }
+}
+
+// Function to calculate total worth of resources
+function calculateTotalWorth(resources) {
+    let total = 0;
+    for (const [resource, amount] of Object.entries(resources)) {
+        total += amount * resourceValues[resource];
+    }
+    return total;
+}
+
+// Function to calculate total spent
+function calculateTotalSpent(spent) {
+    let total = 0;
+    for (const [resource, amount] of Object.entries(spent)) {
+        total += amount * resourceValues[resource];
+    }
+    return total;
+}
+
+// Function to render all players
+function renderPlayers() {
+    playersList.innerHTML = '';
+    
+    players.forEach(player => {
+        const totalWorth = calculateTotalWorth(player.resources);
+        const totalSpent = calculateTotalSpent(player.totalSpent);
+        const spendingPercentage = totalWorth > 0 || totalSpent > 0 ? (totalSpent / (totalWorth + totalSpent) * 100) : 0;
+        
+        const playerCard = document.createElement('div');
+        playerCard.className = 'player-card';
+        
+        const playerHeader = document.createElement('div');
+        playerHeader.className = 'player-header';
+        playerHeader.innerHTML = `
+            <div class="player-name">${player.name}</div>
+            <button class="small secondary" onclick="removePlayer('${player.id}')">Remove</button>
+        `;
+        
+        // Add recent purchases summary
+        const recentPurchasesDiv = document.createElement('div');
+        recentPurchasesDiv.className = 'recent-purchases';
+        
+        if (player.purchaseHistory.length > 0) {
+            // Group duplicate purchases by item name and count occurrences
+            const purchaseCounts = {};
+            player.purchaseHistory.forEach(purchase => {
+                const baseName = purchase.name.replace(/ x\d+$/, '');
+                if (!purchaseCounts[baseName]) {
+                    purchaseCounts[baseName] = {
+                        name: baseName,
+                        count: purchase.quantity || 1
+                    };
+                } else {
+                    purchaseCounts[baseName].count += purchase.quantity || 1;
+                }
+            });
+
+            // Get top 5 items for display
+            const purchaseItems = Object.values(purchaseCounts)
+                .sort((a, b) => b.count - a.count)
+                .slice(0, 5)
+                .map(item => item.count > 1 ? `${item.name} x${item.count}` : item.name);
+
+            const totalItems = Object.values(purchaseCounts).reduce((sum, item) => sum + item.count, 0);
+            const displayedItems = purchaseItems.reduce((sum, item) => {
+                const match = item.match(/ x(\d+)$/);
+                return sum + (match ? parseInt(match[1]) : 1);
+            }, 0);
+                                
+            recentPurchasesDiv.innerHTML = `
+                <div class="recent-purchases-title">Recent Purchases:</div>
+                <div class="recent-purchases-items">
+                    ${purchaseItems.map(item => `<span class="recent-purchase-item">${item}</span>`).join('')}
+                    ${totalItems > displayedItems ? `<span class="recent-purchase-more">+${totalItems - displayedItems} more</span>` : ''}
+                </div>
+            `;
+        } else {
+            recentPurchasesDiv.innerHTML = `
+                <div class="recent-purchases-empty">No purchases yet</div>
+            `;
+        }
+        
+        const resourcesDiv = document.createElement('div');
+        resourcesDiv.className = 'resources';
+        
+        resources.forEach(resource => {
+            const resourceDiv = document.createElement('div');
+            resourceDiv.className = 'resource';
+            
+            resourceDiv.innerHTML = `
+                <div class="resource-header">
+                    <div class="resource-icon ${resource.id}">${resource.icon}</div>
+                    <span>${resource.name}</span>
+                </div>
+                <div class="resource-value">${player.resources[resource.id]}</div>
+                <div class="resource-controls">
+                    <input 
+                        type="number" 
+                        class="resource-input" 
+                        value="${player.resources[resource.id]}" 
+                        min="0" 
+                        onchange="setResourceAmount('${player.id}', '${resource.id}', this.value)"
+                    >
+                </div>
+                <div class="resource-buttons">
+                    <button class="small" onclick="updateResource('${player.id}', '${resource.id}', 1)">+1</button>
+                    <button class="small" onclick="updateResource('${player.id}', '${resource.id}', 10)">+10</button>
+                    <button class="small secondary" onclick="updateResource('${player.id}', '${resource.id}', -1)">-1</button>
+                    <button class="small secondary" onclick="updateResource('${player.id}', '${resource.id}', -10)">-10</button>
+                </div>
+            `;
+            
+            resourcesDiv.appendChild(resourceDiv);
+        });
+        
+        const historySection = document.createElement('div');
+        historySection.className = 'purchase-history';
+        
+        let historyContent = '';
+        if (player.purchaseHistory.length > 0) {
+            historyContent = `
+                <div class="history-title" onclick="toggleHistory('${player.id}')">
+                    <h3>Purchase History (${player.purchaseHistory.length})</h3>
+                    <span id="toggle-${player.id}">▼</span>
+                </div>
+                <div class="history-items" id="history-${player.id}">
+                    ${player.purchaseHistory.map(purchase => `
+                        <div class="history-item">
+                            <div class="history-item-name">
+                                ${purchase.name}
+                            </div>
+                            <div class="history-item-actions">
+                                <div class="history-item-cost">
+                                    ${purchase.ironCost ? `<div class="cost"><div class="resource-icon iron">I</div>${purchase.ironCost}</div>` : ''}
+                                    ${purchase.goldCost ? `<div class="cost"><div class="resource-icon gold">G</div>${purchase.goldCost}</div>` : ''}
+                                    ${purchase.diamondCost ? `<div class="cost"><div class="resource-icon diamond">D</div>${purchase.diamondCost}</div>` : ''}
+                                    ${purchase.emeraldCost ? `<div class="cost"><div class="resource-icon emerald">E</div>${purchase.emeraldCost}</div>` : ''}
+                                </div>
+                                <button class="undo-btn" onclick="undoPurchase('${player.id}', '${purchase.id}')" title="Undo this purchase">↩️</button>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        } else {
+            historyContent = `<div class="history-title">No purchases yet</div>`;
+        }
+        
+        historySection.innerHTML = historyContent;
+        
+        const spendingSection = document.createElement('div');
+        spendingSection.className = 'spending-summary';
+        
+        // Resource type selector
+        const resourceTypeSelector = document.createElement('div');
+        resourceTypeSelector.className = 'resource-type-selector';
+        resourceTypeSelector.innerHTML = `
+            <label for="resource-type-${player.id}">Track:</label>
+            <select id="resource-type-${player.id}" onchange="updateResourceTracking('${player.id}', this.value)">
+                <option value="iron" ${player.trackedResource === 'iron' ? 'selected' : ''}>Iron</option>
+                <option value="gold" ${player.trackedResource === 'gold' ? 'selected' : ''}>Gold</option>
+                <option value="diamond" ${player.trackedResource === 'diamond' ? 'selected' : ''}>Diamond</option>
+                <option value="emerald" ${player.trackedResource === 'emerald' ? 'selected' : ''}>Emerald</option>
+            </select>
+        `;
+        
+        // Get the tracked resource (default to iron if not set)
+        const trackedResource = player.trackedResource || 'iron';
+        
+        // Calculate spending for the tracked resource
+        const resourceAvailable = player.resources[trackedResource] || 0;
+        const resourceSpent = player.totalSpent[trackedResource] || 0;
+        const resourceTotal = resourceAvailable + resourceSpent;
+        
+        const resourceDisplay = document.createElement('div');
+        resourceDisplay.className = 'resource-tracking';
+        resourceDisplay.innerHTML = `
+            <div>
+                <div class="resource-header">
+                    <div class="resource-icon ${trackedResource}">${resources.find(r => r.id === trackedResource)?.icon}</div>
+                    <span>${resources.find(r => r.id === trackedResource)?.name}</span>
+                </div>
+                <div>Spent: ${resourceSpent}</div>
+                <div>Available: ${resourceAvailable}</div>
+                <div>Total: ${resourceTotal}</div>
+            </div>
+            <div style="flex: 1; margin: 0 10px;">
+                <div class="spending-bar">
+                    <div class="spending-progress" style="width: ${spendingPercentage}%"></div>
+                </div>
+            </div>
+            <div>${Math.round(spendingPercentage)}%</div>
+        `;
+        
+        spendingSection.appendChild(resourceTypeSelector);
+        spendingSection.appendChild(resourceDisplay);
+        
+        playerCard.appendChild(playerHeader);
+        playerCard.appendChild(recentPurchasesDiv);
+        playerCard.appendChild(resourcesDiv);
+        playerCard.appendChild(historySection);
+        playerCard.appendChild(spendingSection);
+        playersList.appendChild(playerCard);
+    });
+}
+
+// Function to format resource worth for display
+function formatResourceWorth(worth) {
+    if (worth >= 1000) {
+        return (worth / 1000).toFixed(1) + 'k';
+    }
+    return worth;
+}
+
+// Function to toggle purchase history visibility
+function toggleHistory(playerId) {
+    const historyElement = document.getElementById(`history-${playerId}`);
+    const toggleIcon = document.getElementById(`toggle-${playerId}`);
+    
+    if (historyElement.style.display === 'none') {
+        historyElement.style.display = 'block';
+        toggleIcon.textContent = '▼';
+    } else {
+        historyElement.style.display = 'none';
+        toggleIcon.textContent = '►';
+    }
+}
+
+// Function to update player select dropdown
+function updatePlayerSelect() {
+    playerSelect.innerHTML = '<option value="">Select a player</option>';
+    
+    players.forEach(player => {
+        const option = document.createElement('option');
+        option.value = player.id;
+        option.textContent = player.name;
+        playerSelect.appendChild(option);
+    });
+    
+    if (activePlayer) {
+        playerSelect.value = activePlayer;
+    }
+}
+
+// Function to update player stats display
+function updatePlayerStats() {
+    playerStats.innerHTML = '';
+    
+    const player = players.find(p => p.id === activePlayer);
+    if (!player) return;
+    
+    resources.forEach(resource => {
+        const statDiv = document.createElement('div');
+        statDiv.className = 'player-stat';
+        statDiv.innerHTML = `
+            <div class="resource-icon ${resource.id}">${resource.icon}</div>
+            <span>${player.resources[resource.id]}</span>
+        `;
+        playerStats.appendChild(statDiv);
+    });
+}
+
+// Function to check if a player can afford an item
+function canAfford(player, item) {
+    if (!player) return false;
+    
+    // Check for each resource type if player has enough
+    if (item.ironCost && player.resources.iron < item.ironCost) return false;
+    if (item.goldCost && player.resources.gold < item.goldCost) return false;
+    if (item.diamondCost && player.resources.diamond < item.diamondCost) return false;
+    if (item.emeraldCost && player.resources.emerald < item.emeraldCost) return false;
+    
+    return true;
+}
+
+// Function to filter shop items based on current filters
+function filterShopItems() {
+    let filteredItems = [...shopItems];
+    
+    // Apply search filter
+    if (searchQuery) {
+        const query = searchQuery.toLowerCase();
+        filteredItems = filteredItems.filter(item => 
+            item.name.toLowerCase().includes(query) || 
+            (item.category && item.category.toLowerCase().includes(query))
+        );
+    }
+    
+    // Apply category filter
+    if (categoryFilter) {
+        filteredItems = filteredItems.filter(item => 
+            item.category === categoryFilter
+        );
+    }
+    
+    // Apply tab filter (affordable only)
+    if (activeTab === 'affordable') {
+        const player = players.find(p => p.id === activePlayer);
+        if (player) {
+            filteredItems = filteredItems.filter(item => canAfford(player, item));
+        }
+    }
+    
+    return filteredItems;
+}
+
+// Function to parse item price from format "X ResourceType"
+function parseItemPrice(priceString) {
+    if (!priceString) return null;
+    
+    // Match patterns like "4 Iron", "2 Gold", etc.
+    const match = priceString.match(/(\d+)\s+(\w+)/i);
+    if (!match) return null;
+    
+    const amount = parseInt(match[1]);
+    const resourceType = match[2].toLowerCase();
+    
+    // Map the resource type to our internal representation
+    const resourceMap = {
+        iron: 'iron',
+        gold: 'gold',
+        diamond: 'diamond',
+        diamonds: 'diamond',
+        emerald: 'emerald',
+        emeralds: 'emerald'
+    };
+    
+    const resource = resourceMap[resourceType];
+    if (!resource) return null;
+    
+    return { resource, amount };
+}
+
+// Function to render shop items
+function renderShopItems() {
+    shopItemsContainer.innerHTML = '';
+    
+    const filteredItems = filterShopItems();
+    const player = players.find(p => p.id === activePlayer);
+    
+    filteredItems.forEach(item => {
+        const isAffordable = player ? canAfford(player, item) : false;
+        
+        const itemDiv = document.createElement('div');
+        itemDiv.className = `shop-item ${isAffordable ? 'affordable' : 'not-affordable'}`;
+        
+        const itemHeader = document.createElement('div');
+        itemHeader.className = 'shop-item-header';
+        itemHeader.innerHTML = `
+            <div class="shop-item-name">${item.name}</div>
+            ${item.category ? `<div class="shop-item-category">${item.category}</div>` : ''}
+        `;
+        
+        // Display the price
+        const priceDiv = document.createElement('div');
+        priceDiv.className = 'item-price';
+        
+        let priceHtml = 'Price: ';
+        if (item.ironCost) {
+            priceHtml += `<div class="cost"><div class="resource-icon iron">I</div>${item.ironCost}</div>`;
+        }
+        if (item.goldCost) {
+            priceHtml += `<div class="cost"><div class="resource-icon gold">G</div>${item.goldCost}</div>`;
+        }
+        if (item.diamondCost) {
+            priceHtml += `<div class="cost"><div class="resource-icon diamond">D</div>${item.diamondCost}</div>`;
+        }
+        if (item.emeraldCost) {
+            priceHtml += `<div class="cost"><div class="resource-icon emerald">E</div>${item.emeraldCost}</div>`;
+        }
+        
+        priceDiv.innerHTML = priceHtml;
+        
+        const purchaseBtn = document.createElement('button');
+        purchaseBtn.textContent = 'Purchase';
+        purchaseBtn.style.marginTop = '10px';
+        purchaseBtn.style.width = '100%';
+        if (!isAffordable) {
+            purchaseBtn.disabled = true;
+            purchaseBtn.className = 'secondary';
+        } else {
+            purchaseBtn.className = 'pulse';
+            purchaseBtn.onclick = () => purchaseItem(item.id);
+        }
+        
+        itemDiv.appendChild(itemHeader);
+        itemDiv.appendChild(priceDiv);
+        if (player) {
+            itemDiv.appendChild(purchaseBtn);
+        }
+        
+        shopItemsContainer.appendChild(itemDiv);
+    });
+}
+
+// Function to purchase an item
+function purchaseItem(itemId) {
+    const player = players.find(p => p.id === activePlayer);
+    const item = shopItems.find(i => i.id === itemId);
+    
+    if (!player || !item || !canAfford(player, item)) return;
+    
+    // Check if this item has been purchased before
+    const existingPurchaseIndex = player.purchaseHistory.findIndex(p => 
+        p.name.replace(/ x\d+$/, '') === item.name.replace(/ \(\d+\)$/, '') && // Match item name without quantity
+        p.ironCost === item.ironCost &&
+        p.goldCost === item.goldCost &&
+        p.diamondCost === item.diamondCost &&
+        p.emeraldCost === item.emeraldCost
+    );
+    
+    let purchase;
+    
+    if (existingPurchaseIndex >= 0) {
+        // Get existing purchase and update it
+        purchase = player.purchaseHistory[existingPurchaseIndex];
+        
+        // Increment the quantity
+        purchase.quantity = (purchase.quantity || 1) + 1;
+        
+        // Update display name with quantity
+        const baseName = item.name.replace(/ \(\d+\)$/, ''); // Remove existing quantity
+        purchase.name = `${baseName} x${purchase.quantity}`;
+        
+        // Move this purchase to the top of history (most recent)
+        player.purchaseHistory.splice(existingPurchaseIndex, 1);
+        player.purchaseHistory.unshift(purchase);
+        
+        // Update totals for just this one additional purchase
+        player.totalSpent.iron += item.ironCost || 0;
+        player.totalSpent.gold += item.goldCost || 0;
+        player.totalSpent.diamond += item.diamondCost || 0;
+        player.totalSpent.emerald += item.emeraldCost || 0;
+    } else {
+        // Create new purchase record
+        purchase = {
+            id: 'purchase-' + Date.now(),
+            name: item.name.replace(/ \(\d+\)$/, ''), // Remove item quantity from name
+            ironCost: item.ironCost || 0,
+            goldCost: item.goldCost || 0,
+            diamondCost: item.diamondCost || 0,
+            emeraldCost: item.emeraldCost || 0,
+            timestamp: new Date().toLocaleString(),
+            quantity: 1
+        };
+        
+        // For the first purchase, display without "x1"
+        
+        // Add to player's purchase history
+        player.purchaseHistory.unshift(purchase);
+        
+        // Update totals
+        player.totalSpent.iron += purchase.ironCost || 0;
+        player.totalSpent.gold += purchase.goldCost || 0;
+        player.totalSpent.diamond += purchase.diamondCost || 0;
+        player.totalSpent.emerald += purchase.emeraldCost || 0;
+        
+        // If we buy more later, we'll update to show "x2", etc.
+    }
+    
+    // Deduct resources
+    player.resources.iron -= item.ironCost || 0;
+    player.resources.gold -= item.goldCost || 0;
+    player.resources.diamond -= item.diamondCost || 0;
+    player.resources.emerald -= item.emeraldCost || 0;
+    
+    renderPlayers();
+    updatePlayerStats();
+    renderShopItems();
+    
+    // Show notification
+    showNotification(`${player.name} purchased ${item.name}!`);
+    
+    // Flash effect on purchase
+    const playerCard = document.querySelector(`.player-card:nth-child(${players.indexOf(player) + 1})`);
+    if (playerCard) {
+        playerCard.style.backgroundColor = '#4C8';
+        setTimeout(() => {
+            playerCard.style.backgroundColor = '';
+        }, 500);
+    }
+}
+
+
+// Function to update category buttons
+function updateCategoryButtons() {
+    categoryButtons.innerHTML = '';
+    
+    // Add "All" button
+    const allButton = document.createElement('div');
+    allButton.className = `category-button ${categoryFilter === '' ? 'active' : ''}`;
+    allButton.textContent = 'All';
+    allButton.onclick = () => {
+        categoryFilter = '';
+        updateCategoryButtons();
+        renderShopItems();
+        categorySelect.value = '';
+    };
+    categoryButtons.appendChild(allButton);
+    
+    // Add category buttons
+    const categories = [...new Set(shopItems.map(item => item.category).filter(Boolean))];
+    categories.sort();
+    
+    categories.forEach(category => {
+        const button = document.createElement('div');
+        button.className = `category-button ${categoryFilter === category ? 'active' : ''}`;
+        button.textContent = category;
+        button.onclick = () => {
+            categoryFilter = category;
+            updateCategoryButtons();
+            renderShopItems();
+            categorySelect.value = category;
+        };
+        categoryButtons.appendChild(button);
+    });
+}
+
+// Function to update category select options
+function updateCategorySelect() {
+    const categories = [...new Set(shopItems.map(item => item.category).filter(Boolean))];
+    categories.sort();
+    
+    categorySelect.innerHTML = '<option value="">All Categories</option>';
+    
+    categories.forEach(category => {
+        const option = document.createElement('option');
+        option.value = category;
+        option.textContent = category;
+        categorySelect.appendChild(option);
+    });
+    
+    updateCategoryButtons();
+}
+
+// Function to export data as JSON
+function exportData() {
+    const data = {
+        players: players,
+        timestamp: new Date().toISOString(),
+        version: '1.0'
+    };
+    
+    const dataStr = JSON.stringify(data, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    
+    link.href = url;
+    link.download = `bedwars_shop_data_${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(link);
+    link.click();
+    
+    // Clean up
+    setTimeout(() => {
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    }, 100);
+    
+    showNotification('Data exported successfully!');
+}
+
+// Function to import data from JSON
+function importData(file) {
+    const reader = new FileReader();
+    
+    reader.onload = function(e) {
+        try {
+            const data = JSON.parse(e.target.result);
+            
+            if (!data.players || !Array.isArray(data.players)) {
+                throw new Error('Invalid data format');
+            }
+            
+            // Replace current players with imported ones
+            players = data.players;
+            
+            // Reset active player
+            activePlayer = players.length > 0 ? players[0].id : null;
+            
+            // Update UI
+            renderPlayers();
+            updatePlayerSelect();
+            updatePlayerStats();
+            renderShopItems();
+            
+            showNotification('Data imported successfully!');
+        } catch (error) {
+            console.error('Error importing data:', error);
+            showNotification('Error importing data: ' + error.message, 5000);
+        }
+    };
+    
+    reader.readAsText(file);
+}
+
+// Event listeners
+addPlayerBtn.addEventListener('click', () => {
+    addPlayer(playerNameInput.value);
+    playerNameInput.value = '';
+});
+
+playerNameInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+        addPlayer(playerNameInput.value);
+        playerNameInput.value = '';
+    }
+});
+
+playerSelect.addEventListener('change', (e) => {
+    activePlayer = e.target.value;
+    updatePlayerStats();
+    renderShopItems();
+});
+
+shopSearch.addEventListener('input', (e) => {
+    searchQuery = e.target.value;
+    renderShopItems();
+});
+
+categorySelect.addEventListener('change', (e) => {
+    categoryFilter = e.target.value;
+    updateCategoryButtons();
+    renderShopItems();
+});
+
+tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+        tabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        activeTab = tab.dataset.tab;
+        renderShopItems();
+    });
+});
+
+exportBtn.addEventListener('click', exportData);
+
+importBtn.addEventListener('click', () => {
+    importFile.click();
+});
+
+importFile.addEventListener('change', (e) => {
+    if (e.target.files.length > 0) {
+        importData(e.target.files[0]);
+        e.target.value = null; // Reset file input
+    }
+});
+
+// Function to undo a purchase
+function undoPurchase(playerId, purchaseId) {
+    const player = players.find(p => p.id === playerId);
+    if (!player) return;
+    
+    const purchaseIndex = player.purchaseHistory.findIndex(p => p.id === purchaseId);
+    if (purchaseIndex === -1) return;
+    
+    const purchase = player.purchaseHistory[purchaseIndex];
+    const quantity = purchase.quantity || 1;
+    
+    // Restore resources to player (multiplied by quantity)
+    player.resources.iron += (purchase.ironCost || 0) * quantity;
+    player.resources.gold += (purchase.goldCost || 0) * quantity;
+    player.resources.diamond += (purchase.diamondCost || 0) * quantity;
+    player.resources.emerald += (purchase.emeraldCost || 0) * quantity;
+    
+    // Update total spent
+    player.totalSpent.iron -= (purchase.ironCost || 0) * quantity;
+    player.totalSpent.gold -= (purchase.goldCost || 0) * quantity;
+    player.totalSpent.diamond -= (purchase.diamondCost || 0) * quantity;
+    player.totalSpent.emerald -= (purchase.emeraldCost || 0) * quantity;
+    
+    // Remove purchase from history
+    player.purchaseHistory.splice(purchaseIndex, 1);
+    
+    // Update UI
+    renderPlayers();
+    if (activePlayer === playerId) {
+        updatePlayerStats();
+        renderShopItems();
+    }
+    
+    showNotification(`Undid purchase of ${purchase.name}`);
+}
+
+// Function to update which resource is being tracked for a player
+function updateResourceTracking(playerId, resourceType) {
+    const player = players.find(p => p.id === playerId);
+    if (!player) return;
+    
+    player.trackedResource = resourceType;
+    renderPlayers();
+}
+
+// Make functions available globally
+window.addPlayer = addPlayer;
+window.removePlayer = removePlayer;
+window.updateResource = updateResource;
+window.setResourceAmount = setResourceAmount;
+window.purchaseItem = purchaseItem;
+window.toggleHistory = toggleHistory;
+window.undoPurchase = undoPurchase;
+window.updateResourceTracking = updateResourceTracking;
+
+// Parse CSV data from a formatted string
+function parseCSVData(csvData) {
+    if (!csvData) {
+        loadDefaultItems();
+        return;
+    }
+    
+    try {
+        const lines = csvData.split('\n');
+        if (lines.length <= 1) {
+            loadDefaultItems();
+            return;
+        }
+        
+        const headers = lines[0].split(',').map(h => h.trim());
+        
+        // Check if the CSV has the expected columns
+        const hasNewFormat = headers.includes('Amount_Item') && 
+                             headers.includes('Cost_Type') && 
+                             headers.includes('Amount_Cost');
+        
+        const categoryIndex = headers.indexOf('Category');
+        const itemIndex = headers.indexOf('Item');
+        const amountItemIndex = headers.indexOf('Amount_Item');
+        const costTypeIndex = headers.indexOf('Cost_Type');
+        const amountCostIndex = headers.indexOf('Amount_Cost');
+        
+        const items = [];
+        
+        for (let i = 1; i < lines.length; i++) {
+            if (!lines[i].trim()) continue;
+            
+            const values = lines[i].split(',').map(v => v.trim());
+            
+            // Skip if we don't have enough values
+            if (values.length < Math.max(categoryIndex, itemIndex) + 1) continue;
+            
+            // Get item name and category
+            const itemName = itemIndex >= 0 ? values[itemIndex] : `Item ${i}`;
+            const category = categoryIndex >= 0 ? values[categoryIndex] : '';
+            
+            // Get item amount (quantity)
+            const amount = hasNewFormat && amountItemIndex >= 0 ? values[amountItemIndex] : '1';
+            
+            // Create the item object
+            const item = {
+                id: 'item-' + i,
+                name: itemName + (amount && amount !== '1' ? ` (${amount})` : ''),
+                category: category,
+                ironCost: 0,
+                goldCost: 0,
+                diamondCost: 0,
+                emeraldCost: 0,
+                amount: parseInt(amount) || 1
+            };
+            
+            // Parse cost
+            if (hasNewFormat && costTypeIndex >= 0 && amountCostIndex >= 0) {
+                const costType = values[costTypeIndex].toLowerCase();
+                const costAmount = parseInt(values[amountCostIndex]) || 0;
+                
+                if (costType.includes('iron')) item.ironCost = costAmount;
+                else if (costType.includes('gold')) item.goldCost = costAmount;
+                else if (costType.includes('diamond')) item.diamondCost = costAmount;
+                else if (costType.includes('emerald')) item.emeraldCost = costAmount;
+            } else {
+                // Fallback to old format or default
+                let priceStr = '';
+                for (let j = 0; j < headers.length; j++) {
+                    if (headers[j].includes('type') || headers[j].includes('cost')) {
+                        priceStr = values[j] || '';
+                        if (priceStr) break;
+                    }
+                }
+                
+                const price = parseItemPrice(priceStr);
+                if (price) {
+                    if (price.resource === 'iron') item.ironCost = price.amount;
+                    else if (price.resource === 'gold') item.goldCost = price.amount;
+                    else if (price.resource === 'diamond') item.diamondCost = price.amount;
+                    else if (price.resource === 'emerald') item.emeraldCost = price.amount;
+                }
+            }
+            
+            items.push(item);
+        }
+        
+        shopItems = items;
+        updateCategorySelect();
+        renderShopItems();
+        showNotification(`Loaded ${items.length} items from CSV!`);
+    } catch (error) {
+        console.error('Error parsing CSV data:', error);
+        loadDefaultItems();
+        showNotification('Error loading CSV, using default items', 5000);
+    }
+}
+
+// Load default items if CSV parsing fails
+function loadDefaultItems() {
+    shopItems = [
+        { id: 'item-1', name: 'Wool', category: 'Blocks', ironCost: 4 },
+        { id: 'item-2', name: 'Stone Sword', category: 'Weapons', ironCost: 10 },
+        { id: 'item-3', name: 'Chainmail Armor', category: 'Armor', ironCost: 40 },
+        { id: 'item-4', name: 'Iron Sword', category: 'Weapons', goldCost: 7 },
+        { id: 'item-5', name: 'Bow', category: 'Weapons', goldCost: 12 },
+        { id: 'item-6', name: 'Diamond Sword', category: 'Weapons', emeraldCost: 4 },
+        { id: 'item-7', name: 'Obsidian', category: 'Blocks', emeraldCost: 4 },
+        { id: 'item-8', name: 'TNT', category: 'Utility', goldCost: 8 },
+        { id: 'item-9', name: 'Ender Pearl', category: 'Utility', emeraldCost: 4 },
+        { id: 'item-10', name: 'Water Bucket', category: 'Utility', goldCost: 4 },
+        { id: 'item-11', name: 'Speed Potion', category: 'Potions', emeraldCost: 1 },
+        { id: 'item-12', name: 'Jump Potion', category: 'Potions', emeraldCost: 1 },
+        { id: 'item-13', name: 'Endstone', category: 'Blocks', ironCost: 24 },
+        { id: 'item-14', name: 'Ladder', category: 'Blocks', ironCost: 4 },
+        { id: 'item-15', name: 'Wood', category: 'Blocks', goldCost: 4 },
+        { id: 'item-16', name: 'Shears', category: 'Tools', ironCost: 20 },
+        { id: 'item-17', name: 'Pickaxe', category: 'Tools', ironCost: 10 },
+        { id: 'item-18', name: 'Fireball', category: 'Utility', ironCost: 40 },
+        { id: 'item-19', name: 'Golden Apple', category: 'Food', goldCost: 3 },
+        { id: 'item-20', name: 'Invisibility Potion', category: 'Potions', emeraldCost: 2 }
+    ];
+    updateCategorySelect();
+    renderShopItems();
+}
+
+// Initialize the app with sample data if CSV file isn't available
+function initApp() {
+    // First try to use fetch API since window.fs might not be available
+    fetch('bedwars_item_shop.csv')
+        .then(response => response.text())
+        .then(data => parseCSVData(data))
+        .catch(error => {
+            console.error('Error fetching CSV:', error);
+            loadDefaultItems();
+        });
+        
+    // Add some sample players
+    addPlayer('Player 1');
+    updateResource('player-1', 'iron', 50);
+    updateResource('player-1', 'gold', 10);
+    
+    addPlayer('Player 2');
+    updateResource('player-2', 'iron', 30);
+    updateResource('player-2', 'gold', 5);
+    updateResource('player-2', 'diamond', 2);
+    
+    // Set active player
+    activePlayer = players[0]?.id;
+    playerSelect.value = activePlayer;
+    updatePlayerStats();
+}
+
+// Start the app
+initApp();
+</script>
+</body>
+</html>

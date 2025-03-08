@@ -1,0 +1,58 @@
+Category,Item,Amount_Item,Cost_Type,Amount_Cost
+Blocks,Wool,16,Iron,4
+Blocks,Stained Clay,16,Iron,12
+Blocks,Wood,8,Gold,4
+Blocks,Endstone,12,Iron,24
+Blocks,Glass,4,Iron,12
+Blocks,Ladder,8,Iron,4
+Blocks,Obsidian,1,Emerald,4
+Melee,Stone Sword,1,Iron,10
+Melee,Iron Sword,1,Gold,7
+Melee,Diamond Sword,1,Emerald,3
+Melee,Knockback Stick,1,Gold,5
+Armor,Chainmail Armor,1,Iron,40
+Armor,Iron Armor,1,Gold,12
+Armor,Diamond Armor,1,Emerald,6
+Tools,Wooden Axe,1,Iron,10
+Tools,Stone Axe,1,Iron,10
+Tools,Iron Axe,1,Gold,3
+Tools,Diamond Axe,1,Gold,6
+Tools,Wooden Pickaxe,1,Iron,10
+Tools,Iron Pickaxe,1,Iron,10
+Tools,Gold Pickaxe,1,Gold,3
+Tools,Diamond Pickaxe,1,Gold,6
+Tools,Shears,1,Iron,20
+Ranged,Arrow,8,Gold,2
+Ranged,Bow,1,Gold,12
+Ranged,Bow (Power I),1,Gold,24
+Ranged,Bow (Power I Punch I),1,Emerald,6
+Potions,Speed Potion,1,Emerald,1
+Potions,Jump Potion,1,Emerald,1
+Potions,Invisibility Potion,1,Emerald,2
+Utility,Golden Apple,1,Gold,3
+Utility,Bedbug,1,Iron,40
+Utility,Dream Defender,1,Iron,120
+Utility,Fireball,1,Iron,40
+Utility,TNT,1,Gold,8
+Utility,Ender Pearl,1,Emerald,4
+Utility,Water Bucket,1,Gold,6
+Utility,Bridge Egg,1,Emerald,1
+Utility,Magic Milk,1,Gold,4
+Utility,Sponge,4,Gold,6
+Utility,Compact Pop-Up Tower,1,Iron,24
+ Diamond Upgrades,Sharpness I,1,Diamond,8
+ Diamond Upgrades,Protection I,1,Diamond,5
+ Diamond Upgrades,Protection II,1,Diamond,10
+ Diamond Upgrades,Protection III,1,Diamond,20
+ Diamond Upgrades,Protection IV,1,Diamond,30
+ Diamond Upgrades,Maniac Miner I,1,Diamond,4
+ Diamond Upgrades,Maniac Miner II,1,Diamond,6
+ Diamond Upgrades,Iron Forge,1,Diamond,4
+ Diamond Upgrades,Gold Forge,1,Diamond,8
+ Diamond Upgrades,Spawn Emerald,1,Diamond,12
+ Diamond Upgrades,Molten Forge,1,Diamond,16
+ Diamond Upgrades,Heal Pool,1,Diamond,3
+ Diamond Upgrades,It's a trap!,1,Diamond,1
+ Diamond Upgrades,Counter-Offensive Trap,1,Diamond,1
+ Diamond Upgrades,Alarm Trap,1,Diamond,1
+ Diamond Upgrades,Miner Fatigue Trap,1,Diamond,1
